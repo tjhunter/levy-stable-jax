@@ -1,7 +1,5 @@
 """
-Implementation of the Catmull-Rom spline interpolation in JAX.
-
-.. note:: The current implementation only supports 1d interpolation.
+The current implementation only supports 1d interpolation.
 """
 
 import jax.numpy as jnp
