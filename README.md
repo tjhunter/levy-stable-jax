@@ -30,5 +30,9 @@ Setting up the test environment
 
 ```
 pip install .[dev]
+make lint
+make test
+poetry build
+poetry publish
 
 ```
