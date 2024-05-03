@@ -1,0 +1,127 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry]
+packages = [{include = "levy_stable_jax", from="src"}]
+name = "levy-stable-jax"
+version = "0.1"
+authors = ["Tim Hunter <tjhunter@cs.stanford.edu>"]
+description = "Implementation of the Lévy stable distributions for Jax."
+readme = "README.md"
+license = "MIT"
+
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+jax = "^0.4"
+numpy = "^1.19" 
+scipy = "^1.5"
+
+# For inference
+# jaxopt = "^0.8"
+
+# For MCMC
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.4.0"
+mypy = "^1.9.0"
+ruff = "^0.4.1"
+mkdocs = "^1.6.0"
+hypothesis = "^6.100.1"
+jaxopt = "^0.8.3"
+pytest = "^8.1.1"
+absl-py = "^2.1.0"
+scikit-learn = "^1.4.2"
+# Interactive sessions
+jupyter = "^1.0.0"
+seaborn = "^0.13.2"
+pymc = "^5.13.1"
+numpyro = "^0.14.0"
+sphinx = "^7.3.7"
+sphinx-rtd-theme = "^2.0.0"
+mkdocs-material = "^9.5.19"
+mkdocstrings = {extras = ["python"], version = "^0.24.3"}
+pytkdocs = {version = "^0.16.1", extras = ["numpy-style"]}
+
+[project]
+name = "levy-stable-jax"
+version = "0.1"
+authors = [
+    {name = "Tim Hunter", email = "tjhunter@cs.stanford.edu"},
+]
+description = "Implementation of the Lévy stable distributions for Jax."
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "jax>=0.3",
+    "jaxopt>=0.8",
+    "numpy>=1.19",
+    "scipy>=1.5",    
+]
+
+[project.optional-dependencies]
+dev = [
+    "black==23.10",
+    "mypy==1.6.1",
+    "ruff==0.1.1",
+]
+test = [
+    "pytest-cov~=4.1.0",
+    "pytest~=7.4.0",
+    "hypothesis~=6.88.0",
+    "absl-py==2.0.0",
+    "scikit-learn~=1.3.1",
+]
+
+[tool.pytest.ini_options]
+#addopts = "--cov --cov-report html --cov-report term-missing --cov-fail-under 95"
+minversion = "7.0"
+testpaths = [
+    "tests",
+]
+pythonpath = [
+    "src",
+]
+
+[tool.hatch.build.targets.wheel]
+sources = ["src"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src/*",
+]
+exclude = [
+]
+
+[tool.hatch.env]
+requires = [
+    "hatch-mkdocs",
+]
+
+[tool.hatch.env.collectors.mkdocs.docs]
+path = "mkdocs.yml"
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.ruff]
+
+line-length = 100
+# 1. Enable flake8-bugbear (`B`) rules, in addition to the defaults.
+lint.select = ["E", "F", "B", "Q"]
+
+# 2. Avoid enforcing line-length violations (`E501`)
+# ignore = ["E501"]
