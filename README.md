@@ -23,12 +23,12 @@ functionality.
 
 - only one parametrization (Nolan's N0 notation) is implemented. It is the more stable parametrization for numerical computations.
 
-## Commands
+## Commands (development only)
 
 
-### Setting up the test environment
+Setting up the test environment
 
 ```
-pip install .[test]
+pip install .[dev]
 
 ```

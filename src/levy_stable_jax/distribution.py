@@ -297,7 +297,8 @@ def _logpdf_unit(x: JArray, alpha: JArray, beta: JArray) -> JArray:
         # If beta < BETA_EXP_REGIME, blend exp_tail but not gau_tail
         # If alpha > ALPHA_GAU_REGIME and beta > BETA_EXP_REGIME, blend gau_tail
         # The tricky part: the gaussian tail is concentrated around 0 and falls quickly.
-        # With beta ~ -1, alpha ~ 2, it is unclear which parts are gaussian and which parts are exponential
+        # With beta ~ -1, alpha ~ 2, it is unclear which parts are gaussian and which
+        # parts are exponential
         exp_tail_mask = jnp.where(beta_ <= BETA_EXP_REGIME, zeros, ninfs)
         gau_tail_mask = jnp.where(
             (alpha_ >= ALPHA_GAUSSIAN_REGIME) & (beta_ >= BETA_EXP_REGIME), zeros, ninfs

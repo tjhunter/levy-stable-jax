@@ -3,7 +3,6 @@ from scipy.stats import levy_stable as sp_levy_stable  # type: ignore
 from contextlib import contextmanager
 from jax import Array as JArray
 import jax.numpy as jnp
-from numpy.typing import ArrayLike as NPArray
 
 from ._typing import Params, Param
 
@@ -41,7 +40,7 @@ def set_stable(p: Param):
         sp_levy_stable.parameterization = curr
 
 
-INPUT = JArray | NPArray | float
+INPUT = JArray | float
 
 
 def param_convert(
@@ -51,9 +50,10 @@ def param_convert(
     scale: INPUT,
     param_from: Param,
     param_to: Param,
-) -> Tuple[JArray, JArray]:
+) -> Tuple[JArray | float, JArray | float]:
     """
-    Shifts the loc and scale of the alpha-stable distribution from one parametrization to another.
+    Shifts the loc and scale of the alpha-stable distribution from
+    one parametrization to another.
 
     Args:
         alpha: The stability parameter of the stable distribution (0-2.0].
@@ -106,7 +106,7 @@ def shift_scale(
     a: INPUT,
     b: INPUT,
     param: Param,
-) -> Tuple[JArray, JArray, JArray]:
+) -> Tuple[JArray | float, JArray | float, JArray]:
     """
     Given an alpha-stable distribution X with parameters alpha, beta, loc, scale,
     returns the distribution Y = a * X + b, in the same parametrization.
@@ -161,7 +161,8 @@ def sum(
         alpha: The stability parameter of the stable distribution (0-2.0]. It is fixed
             for all distributions.
         beta: The skewness parameter of the stable distribution.
-        loc: The location parameter of the stable distribution (exact definition depending on the choice of pametrization)
+        loc: The location parameter of the stable distribution (exact definition
+        depending on the choice of pametrization)
         scale: The scale parameter of the stable distribution.
         param: The parametrization of the stable distribution.
 
