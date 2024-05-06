@@ -52,7 +52,7 @@ description = "Implementation of the Lévy alpha-stable distributions for Jax."
 readme = "README.md"
 license = "Apache 2.0"
 homepage = "https://github.com/tjhunter/levy-stable-jax"
-documentation = "https://github.com/tjhunter/levy-stable-jax"
+documentation = "https://levy-stable-jax.readthedocs.io/en/latest/"
 repository = "https://github.com/tjhunter/levy-stable-jax"
 keywords = ["levy", "stable", "jax", "probability", "statistics"]
 
