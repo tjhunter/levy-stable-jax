@@ -2,6 +2,10 @@
 Monte Carlo sampling of Levy-stable distributions using PyMC.
 
 As far as users are concerned, the only relevant function should be `LevyStableN0`.
+
+A full example notebook is available here:
+https://github.com/tjhunter/levy-stable-jax/blob/main/notebooks/pymc_levy.ipynb
+
 """
 
 # The source of most of this code are the following tutorials:
