@@ -46,7 +46,7 @@ Repository = "https://github.com/tjhunter/levy-stable-jax"
 [tool.poetry]
 packages = [{include = "levy_stable_jax", from="src"}]
 name = "levy-stable-jax"
-version = "0.1.3a"
+version = "0.1.4"
 authors = ["Tim Hunter <tjhunter@cs.stanford.edu>"]
 description = "Implementation of the Lévy alpha-stable distributions for Jax."
 readme = "README.md"
@@ -60,6 +60,7 @@ keywords = ["levy", "stable", "jax", "probability", "statistics"]
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
 jax = "^0.4"
+jaxlib = "^0.4.26"
 numpy = "^1.19" 
 scipy = "^1.5"
 pymc = {version="^5.13.1", optional=true}
@@ -93,6 +94,10 @@ scikit-learn = "^1.4.2"
 jupyter = "^1.0.0"
 seaborn = "^0.13.2"
 
+
+
+[tool.poetry.group.pymc.dependencies]
+pytensor = "^2.20.0"
 
 [tool.pytest.ini_options]
 #addopts = "--cov --cov-report html --cov-report term-missing --cov-fail-under 95"
