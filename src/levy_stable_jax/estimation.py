@@ -14,6 +14,7 @@ import jaxopt  # type: ignore
 import scipy.stats._levy_stable  # type: ignore
 
 from .distribution import logpdf, Params, Param
+from ._utils import param_convert
 
 
 def fit_quantiles(samples: JArray, param: Param) -> JArray:
@@ -57,17 +58,12 @@ def fit_ll(
     """
     Maximum likelihood evaluation for univariate Lévy-Stable distributions.
 
-    d: a distribution object
-    param: the parametrization of the returned distribution
-    samples: a 1-d array with the observed samples.
-    weights: optional, the weights on each of the samples.
-
-    Return a len-4 array with the parameters of the distribution: (alpha, beta, loc, scale)
-
-    TODO: add the possibility to pass tuples to constraint the search space.
-
-    TODO: N1 parametrization is not implemented yet.
-
+    Args:
+        param: the parametrization of the returned distribution
+        samples: a 1-d array with the observed samples.
+        weights: optional, the weights on each of the samples.
+        alpha: optional, the value of alpha to be used in the optimization.
+        beta: optional, the value of beta to be used in the optimization.
 
     Examples:
 
@@ -81,7 +77,6 @@ def fit_ll(
     The first value is alpha, then beta, then the location parameter and then
      the scale parameter.
     """
-    assert param == Params.N0, param
     assert samples.ndim == 1, samples
     assert samples.size > 4, samples.size
 
@@ -152,6 +147,8 @@ def fit_ll(
         return (jnp.array(lower), jnp.array(upper))
 
     theta_bounds = _bounds()
-    res = solver.run(theta_start, bounds=theta_bounds)
-    # TODO: convert back to the requested parametrization
-    return res.params
+    sres = solver.run(theta_start, bounds=theta_bounds)
+    (alpha0, beta0, loc0, scale0) = _unpack(sres.params)
+    # Convert to the requested parametrization
+    (loc_x, scale_x) = param_convert(alpha0, beta0, loc0, scale0, Params.N0, param)
+    return jnp.array([alpha0, beta0, loc_x, scale_x])
