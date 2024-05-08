@@ -28,12 +28,11 @@ def LevyStableN0(name, alpha, beta, loc, scale, observed=None):
     A Lévy-stable distribution. The parametrization follows the "0" notation
     from Nolan (2022). It is also known as the "S0" parametrization in scipy.
 
-    Parameters:
-
-    - alpha: the stability parameter. Must be in (1.1, 2].
-    - beta: the skewness parameter. Must be in [-1, 1].
-    - loc: the location parameter (delta in Nolan's notation).
-    - scale: the scale parameter (gamma in Nolan's notation).
+    Args:
+        alpha: the stability parameter. Must be in (1.1, 2].
+        beta: the skewness parameter. Must be in [-1, 1].
+        loc: the location parameter (delta in Nolan's notation).
+        scale: the scale parameter (gamma in Nolan's notation).
 
     This distribution is explicitly implemented and parametrized for the N0
     parametrization, because the N1 parametrization is not continuous

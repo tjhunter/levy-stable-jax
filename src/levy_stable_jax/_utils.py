@@ -64,7 +64,7 @@ def param_convert(
         param_to: The requested parametrization
 
     Returns:
-        The parameters of the stable distribution in the parametrization used by scipy.
+        (loc, scale) in the requested parametrization.
     """
 
     # For now, we only need to shift the location. The conversion of the scale
@@ -162,7 +162,7 @@ def sum(
             for all distributions.
         beta: The skewness parameter of the stable distribution.
         loc: The location parameter of the stable distribution (exact definition
-        depending on the choice of pametrization)
+            depending on the choice of pametrization)
         scale: The scale parameter of the stable distribution.
         param: The parametrization of the stable distribution.
 
@@ -173,9 +173,10 @@ def sum(
     ```python
     import jax.numpy as jnp
     >>> sum(2.0, 0.0, 0.0, jnp.asarray([1.0, 1.0]), Params.N1) # doctest: +ELLIPSIS
-    (Array(0., dtype=float64), Array(0., dtype=float64), Array(1.4142135..., dtype=float64))
+    (Array(0., dtype=float64), Array(0., dtype=float64), Array(1.4142135...,...))
 
     ```
+
     Example: dot product.
     Say that x1 ~ S(2, 0, 1, 1) and x2 ~ S(2, 0, 1.1, 1) are independent.
     We want to compute the distribution z = A . x + b where

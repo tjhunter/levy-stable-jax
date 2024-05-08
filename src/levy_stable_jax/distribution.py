@@ -10,8 +10,9 @@ Univariate stable distribution by John Nolan, 2020.
 from __future__ import annotations  # for the | syntax.
 
 from math import pi as PI
-from typing import Tuple, List
+from typing import Tuple, List, Sequence
 
+import jax
 import jax.numpy as jnp
 from jax import Array as JArray
 import jax.scipy.special as jax_special
@@ -23,6 +24,7 @@ from ._interp import interp_linear
 from ._typing import Param, Params
 from ._cache import jax_read_from_cache
 
+Shape = Sequence[int]  # TODO: unsure how to obtain from jax.
 
 NUM_X_POINTS = 200  # 200
 NUM_ALPHA_POINTS = 80  # 76
@@ -83,7 +85,30 @@ def pdf(
     """
     The probability density function for the Levy-Stable distribution.
 
-    TODO: documentation
+    Parameters:
+
+    - x: the values at which to evaluate the PDF
+    - alpha: the alpha parameter of the distribution
+    - beta: the beta parameter of the distribution
+    - loc: the location parameter of the distribution
+        (default 0.0, meaning depends on the parametrization)
+    - scale: the scale parameter of the distribution
+        (default 1.0, meaning depends on the parametrization)
+    - param: the parametrization of the distribution
+
+    Returns:
+    - the value of the PDF at the given point(s)
+
+    Examples:
+
+    Evaluation of the unit Levy-stable distribution at 0.0, with alpha=1.5, beta=0.0.
+    ```py
+    >>> pdf(0.0, 1.5, 0.0) # doctest: +ELLIPSIS
+    0.28568...
+    >>> pdf(0.0, 1.5, 0.0,param=Params.N0) # doctest: +ELLIPSIS
+    0.28568...
+
+    ```
     """
     # TODO: implement the other parametrizations
     (alpha_, beta_, x_, loc_, scale_), is_scalar = _canonicalize_input(
@@ -108,12 +133,21 @@ def logpdf(
     """
     The probability density function for the Levy-Stable distribution.
 
-    TODO: documentation
+    Parameters:
+
+    - x: the values at which to evaluate the PDF
+    - alpha: the alpha parameter of the distribution
+    - beta: the beta parameter of the distribution
+    - loc: the location parameter of the distribution
+        (default 0.0, meaning depends on the parametrization)
+    - scale: the scale parameter of the distribution
+        (default 1.0, meaning depends on the parametrization)
+    - param: the parametrization of the distribution (see Params)
 
     Examples:
 
     ```py
-    >>> logpdf(0.0, 1.5, 0.0, 1.0)
+    >>> logpdf(0.0, 1.5, 0.0, 1.0) # doctest: +ELLIPSIS
     -1.603550...
 
     ```
@@ -129,6 +163,75 @@ def logpdf(
     if is_scalar:
         res = res.item()
     return res
+
+
+def rvs(
+    alpha: INPUT_TYPE,
+    beta: INPUT_TYPE,
+    prng: jax.random.PRNGKey,
+    loc: INPUT_TYPE = 0.0,
+    scale: INPUT_TYPE = 1.0,
+    shape: Shape = (),
+    param: Param = Params.N0,
+) -> JArray:
+    """
+    Generate random samples from the Levy-Stable distribution.
+
+    Args:
+        alpha: the alpha parameter of the distribution
+        beta: the beta parameter of the distribution
+        prng: the pseudo-random number generator key
+        loc: the location parameter of the distribution
+        scale: the scale parameter of the distribution
+        shape: the shape of the output array
+        param: the parametrization of the distribution
+
+    Returns:
+    - the generated samples
+
+    Examples:
+
+    ```py
+    >>> import jax
+    >>> prng = jax.random.PRNGKey(1)
+    >>> rvs(alpha=1.5, beta=0.0, loc=0.0, scale=1.0, param=Params.N1,
+    ...  shape=(10,), prng=prng) # doctest: +ELLIPSIS
+    Array([-0.750..., -0.495..., ...], ...)
+
+    ```
+    """
+    # The sampling algorithm is for N1 parametrization.
+    unit_n1 = _sample_unit_n1(alpha, beta, prng, shape)
+    return _values_n1_to_param(alpha, beta, unit_n1, loc, scale, param)
+
+
+def _values_n1_to_param(
+    alpha: INPUT_TYPE,
+    beta: INPUT_TYPE,
+    values: INPUT_TYPE,
+    loc: INPUT_TYPE,
+    scale: INPUT_TYPE,
+    to_param: Param,
+) -> Tuple[JArray, JArray]:
+    """
+    Takes values in the unit N1 parametrization and shifts them to the requested parametrization.
+
+    Valid for all alpha.
+    """
+    # TODO: merge with utils.scale?
+    if to_param == Params.N0:
+        return jnp.where(
+            jnp.abs(alpha - 1) < 1e-10,
+            loc + scale * values,
+            loc + scale * (values - beta * jnp.tan(PI * alpha / 2)),
+        )
+    elif to_param == Params.N1:
+        # TODO: have a separate function to define x log(x) around x == 1 with Taylor expansion
+        return jnp.where(
+            jnp.abs(alpha - 1) < 1e-10,
+            loc + scale * (values + beta * 2 / PI * scale * jnp.log(scale)),
+            loc + scale * values,
+        )
 
 
 def _pdf_n0(
@@ -384,3 +487,38 @@ def _canonicalize_input(arrays: List[npt.ArrayLike]) -> Tuple[List[JArray], bool
         raise AssertionError(f"Size mismatch: {arr.shape} vs {max_len}")
 
     return [_check_size(arr) for arr in arrs], False
+
+
+def _sample_unit_n1(
+    alpha: JArray, beta: JArray, prng: jax.random.PRNGKey, shape: Shape
+) -> JArray:
+    """
+    Sample from the unit Levy-stable distribution in the N1 parametrization.
+
+    This implementation only support alpha != 1, it will diverge or return NaNs for alpha == 1.
+
+    Algorithm based on Nolan (2020), Theorem 1.3
+
+    Based on the scipy code:
+    https://github.com/scipy/scipy/blob/v1.13.0/scipy/stats/_levy_stable/__init__.py#L422
+    """
+    k1, k2 = jax.random.split(prng, 2)
+    TH = (jax.random.uniform(k1, shape=shape) - 0.5) * PI
+    W = jax.random.exponential(k2, shape=shape)
+    aTH = alpha * TH
+    cosTH = jnp.cos(TH)
+    tanTH = jnp.tan(TH)
+
+    # Not implementing the special cases for alpha = 1 or beta=0
+    val0 = beta * np.tan(np.pi * alpha / 2)
+    th0 = jnp.arctan(val0) / alpha
+    val3 = W / (cosTH / jnp.tan(alpha * (th0 + TH)) + jnp.sin(TH))
+    res3 = val3 * (
+        (
+            jnp.cos(aTH)
+            + jnp.sin(aTH) * tanTH
+            - val0 * (jnp.sin(aTH) - jnp.cos(aTH) * tanTH)
+        )
+        / W
+    ) ** (1.0 / alpha)
+    return res3
