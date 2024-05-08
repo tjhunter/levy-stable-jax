@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "levy-stable-jax"
-version = "0.1.4"
+version = "0.2.0"
 authors = [
     {name = "Tim Hunter", email = "tjhunter@cs.stanford.edu"},
 ]
@@ -46,7 +46,7 @@ Repository = "https://github.com/tjhunter/levy-stable-jax"
 [tool.poetry]
 packages = [{include = "levy_stable_jax", from="src"}]
 name = "levy-stable-jax"
-version = "0.1.4"
+version = "0.2.0"
 authors = ["Tim Hunter <tjhunter@cs.stanford.edu>"]
 description = "Implementation of the Lévy alpha-stable distributions for Jax."
 readme = "README.md"
