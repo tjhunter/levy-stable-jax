@@ -27,13 +27,28 @@ ranges of parameters.
 
 ## Installation
 
+With `pip`:
+
+```bash
+pip install levy-stable-jax
+```
+
 This package is written in pure Jax code, with the reliance on numpy and 
 scipy for constant special operations. It depends explicitly on 
 `jax`, `numpy` and `scipy`.
 
-For estimation, the `jaxopt` package is also required (not listed as a dependency)
+For estimation, the `jaxopt` package is also required:
 
-For MCMC inference, the following packages are needed: `pymc>=5`, `numpyro`.
+```bash
+pip install levy-stable-jax[inference]
+```
+
+For MCMC inference, the following packages are needed: `pymc>=5`, `numpyro`:
+
+```bash
+pip install levy-stable-jax[pymc]
+```
+
 
 ## Notations and parametrizations
 
@@ -52,4 +67,4 @@ accurate values for the core of the distribution. For the tails, it
 directly implements known formulas.
 
 This package deviates from `scipy` in the case beta = 1 and beta = -1,
-for which the scipy implementation has been found to not respect well-established tail formulas. 
+for which the scipy implementation has been found to not respect known tail formulas. 
