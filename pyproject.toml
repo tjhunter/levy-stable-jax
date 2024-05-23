@@ -98,6 +98,14 @@ seaborn = "^0.13.2"
 
 [tool.poetry.group.pymc.dependencies]
 pytensor = "^2.20.0"
+pymc = {version="^5.13.1"}
+numpyro = {version="^0.14.0"}
+
+
+[tool.poetry.group.inference.dependencies]
+jaxopt = {version="^0.8"}
+
+
 
 [tool.pytest.ini_options]
 #addopts = "--cov --cov-report html --cov-report term-missing --cov-fail-under 95"
