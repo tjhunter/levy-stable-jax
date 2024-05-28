@@ -71,9 +71,6 @@ def LevyStableN0(name, alpha, beta, loc, scale, observed=None):
 
     TODO: turn into a proper distribution.
 
-    TODO: add a sampler.
-
-
     """
     return pm.CustomDist(
         name,
