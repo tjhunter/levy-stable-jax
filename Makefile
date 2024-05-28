@@ -1,7 +1,7 @@
 lint:
 	black --check src/levy_stable_jax tests
-	ruff check src/levy_stable_jax tests # TODO: fix ruff
-	mypy src/levy_stable_jax
+	ruff check src/levy_stable_jax tests
+	mypy -v src/levy_stable_jax
 
 test:
 	PYTHONPATH=$(PWD) pytest tests src/levy_stable_jax -v --doctest-modules

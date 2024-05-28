@@ -17,12 +17,12 @@ import jax.numpy as jnp
 import numpy as np
 import jax
 import pytensor.tensor as pt
-from pytensor.graph import Apply, Op
-from pytensor.link.jax.dispatch import jax_funcify
+from pytensor.graph import Apply, Op # type: ignore
+from pytensor.link.jax.dispatch import jax_funcify # type: ignore
 import pymc as pm  # type: ignore
 
 from .distribution import logpdf as levy_stable_logpdf, rvs as ls_rvs
-from .distribution import Params
+from ._typing import Params
 
 __all__ = ["LevyStableN0"]
 
@@ -33,10 +33,10 @@ def LevyStableN0(name, alpha, beta, loc, scale, observed=None):
     from Nolan (2022). It is also known as the "S0" parametrization in scipy.
 
     Args:
-        alpha: the stability parameter. Must be in (1.1, 2].
-        beta: the skewness parameter. Must be in [-1, 1].
-        loc: the location parameter (delta in Nolan's notation).
-        scale: the scale parameter (gamma in Nolan's notation).
+        alpha(tensor): the stability parameter. Must be in (1.1, 2].
+        beta(tensor): the skewness parameter. Must be in [-1, 1].
+        loc(tensor): the location parameter (delta in Nolan's notation).
+        scale(tensor): the scale parameter (gamma in Nolan's notation).
 
     This distribution is explicitly implemented and parametrized for the N0
     parametrization, because the N1 parametrization is not continuous
@@ -76,15 +76,22 @@ def LevyStableN0(name, alpha, beta, loc, scale, observed=None):
 
     """
     return pm.CustomDist(
-        name, alpha, beta, loc, scale, logp=_levy_stable_logp_op,
-         random=_sample, observed=observed
+        name,
+        alpha,
+        beta,
+        loc,
+        scale,
+        logp=_levy_stable_logp_op,
+        random=_sample,
+        observed=observed,
     )
 
 
 def _sample(alpha, beta, loc, scale, rng, size):
-    # TODO: unsure if this is a good idea to hardcode the PRNG here. 
+    # TODO: unsure if this is a good idea to hardcode the PRNG here.
     prng = jax.random.PRNGKey(1)
     return ls_rvs(alpha, beta, prng, loc, scale, size, param=Params.N0)
+
 
 def _logp_sum_n0(x, alpha, beta, loc, scale):
     # TODO: it should already return a scalar, but currently returning a vector

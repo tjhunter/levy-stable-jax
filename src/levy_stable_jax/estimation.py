@@ -6,15 +6,16 @@ of the standard API: their interface is not likely to change but
 they may not be as numerically stable.
 """
 
-from typing import Optional
+from typing import Optional, Tuple
 
 import jax.numpy as jnp
 from jax import Array as JArray
 import jaxopt  # type: ignore
 import scipy.stats._levy_stable  # type: ignore
 
-from .distribution import logpdf, Params, Param
+from .distribution import logpdf
 from ._utils import param_convert
+from ._typing import Param, Params
 
 
 def fit_quantiles(samples: JArray, param: Param) -> JArray:
@@ -54,7 +55,7 @@ def fit_ll(
     weights: Optional[JArray] = None,
     alpha: Optional[float] = None,
     beta: Optional[float] = None,
-):
+) -> JArray:
     """
     Maximum likelihood evaluation for univariate Lévy-Stable distributions.
 
@@ -80,23 +81,23 @@ def fit_ll(
     assert samples.ndim == 1, samples
     assert samples.size > 4, samples.size
 
-    def _unpack(theta):
+    def _unpack(theta: JArray) -> Tuple[JArray, JArray, JArray, JArray]:
         idx = 0
         if alpha is None:
             alpha_ = theta[idx]
             idx += 1
         else:
-            alpha_ = alpha
+            alpha_ = jnp.asarray(alpha)
         if beta is None:
             beta_ = theta[idx]
             idx += 1
         else:
-            beta_ = beta
+            beta_ = jnp.asarray(beta)
         loc_ = theta[idx]
         scale_ = theta[idx + 1]
         return (alpha_, beta_, loc_, scale_)
 
-    def _pack(alpha_, beta_, loc_, scale_):
+    def _pack(alpha_: JArray, beta_: JArray, loc_: JArray, scale_: JArray) -> JArray:
         vals = [
             [alpha_] if alpha is None else [],
             [beta_] if beta is None else [],
@@ -105,7 +106,7 @@ def fit_ll(
         ]
         return jnp.array([x for val in vals for x in val])
 
-    def _log_likelikhood_n0(theta):
+    def _log_likelikhood_n0(theta: JArray) -> JArray:
         (alpha_, beta_, loc_, scale_) = _unpack(theta)
         logs = logpdf(
             samples, alpha=alpha_, beta=beta_, loc=loc_, scale=scale_, param=Params.N0
@@ -126,7 +127,7 @@ def fit_ll(
     theta_start = _pack(*start)
 
     # Build the bounds for the solver:
-    def _bounds():
+    def _bounds() -> Tuple[JArray, JArray]:
         lower = []
         upper = []
         idx = 0

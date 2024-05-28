@@ -1,4 +1,6 @@
 import numpy as np
+from numpy.typing import NDArray
+from typing import Any
 from scipy.stats import levy_stable as sp_levy_stable  # type: ignore
 import scipy.interpolate  # type: ignore
 import logging
@@ -23,7 +25,7 @@ _THRESH_D2 = 1.0
 _KINK_DELTA = 1e-1
 
 
-def make_data_files():
+def make_data_files() -> None:
     """
     Generates the lookup tables.
 
@@ -57,7 +59,7 @@ def make_data_files():
     np.save(path, logpdf)
 
 
-def _is_kink(z):
+def _is_kink(z:NDArray[Any]) -> NDArray[Any]:
     before = np.array(z)
     before[:-1] = z[1:]
     after = np.array(z)
@@ -68,7 +70,7 @@ def _is_kink(z):
     )
 
 
-def _gen_clean_vals(alpha, beta, xs, dx):
+def _gen_clean_vals(alpha: float, beta:float, xs:NDArray[Any], dx:float) -> NDArray[Any]:
     """
     Generates the values for the logpdf using scipy's code, and perform various
     checks.
