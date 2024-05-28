@@ -17,8 +17,8 @@ import jax.numpy as jnp
 import numpy as np
 import jax
 import pytensor.tensor as pt
-from pytensor.graph import Apply, Op # type: ignore
-from pytensor.link.jax.dispatch import jax_funcify # type: ignore
+from pytensor.graph import Apply, Op  # type: ignore
+from pytensor.link.jax.dispatch import jax_funcify  # type: ignore
 import pymc as pm  # type: ignore
 
 from .distribution import logpdf as levy_stable_logpdf, rvs as ls_rvs

@@ -59,7 +59,7 @@ def make_data_files() -> None:
     np.save(path, logpdf)
 
 
-def _is_kink(z:NDArray[Any]) -> NDArray[Any]:
+def _is_kink(z: NDArray[Any]) -> NDArray[Any]:
     before = np.array(z)
     before[:-1] = z[1:]
     after = np.array(z)
@@ -70,7 +70,9 @@ def _is_kink(z:NDArray[Any]) -> NDArray[Any]:
     )
 
 
-def _gen_clean_vals(alpha: float, beta:float, xs:NDArray[Any], dx:float) -> NDArray[Any]:
+def _gen_clean_vals(
+    alpha: float, beta: float, xs: NDArray[Any], dx: float
+) -> NDArray[Any]:
     """
     Generates the values for the logpdf using scipy's code, and perform various
     checks.
