@@ -10,15 +10,13 @@ from typing import Optional
 
 import jax.numpy as jnp
 import numpy as np
-from jax import Array as JArray
+from jax import Array as JArray, jit
 from scipy.interpolate import RectBivariateSpline
 import jax
 import jaxopt  # type: ignore
-import scipy.stats._levy_stable  # type: ignore
 
 from .distribution import logpdf, Params, Param, cdf as lsj_cdf
 from ._utils import param_convert
-
 
 def fit_quantiles(
     samples: JArray | None, param: Param, percentiles: JArray | None = None
@@ -77,33 +75,56 @@ def fit_ks(
     values, this can provide a better matching distribution.
 
     Args:
-        x: the points at which the CDF is evaluated
+        x: the points at which the CDF is evaluated.
         cdf: the values of the CDF at the given point
 
     The first value is alpha, then beta, then the location parameter and then
      the scale parameter.
     """
 
+    min_x = jnp.min(x)
+    max_x = jnp.max(x)
+    delta = max_x - min_x
+    n = jnp.size(x)
+
+    def _metric(cdf_, target_):
+        return jnp.max(jnp.abs(cdf_-target_))
+        # return jnp.mean(jnp.abs(cdf_ - target_))
+
     def _ks_distance(alpha_, beta_, loc_, scale_):
         curr_cdf = lsj_cdf(
             x, loc=loc_, scale=scale_, alpha=alpha_, beta=beta_, param=Params.N0
         )
-        opt_val = jnp.mean(jnp.abs(curr_cdf - cdf))
-        jax.debug.print(
-            "Opt value: {opt_val} {alpha_} {beta_} {loc_} {scale_}",
-            opt_val=opt_val,
-            alpha_=alpha_,
-            beta_=beta_,
-            loc_=loc_,
-            scale_=scale_,
-        )
+        low_x = jnp.linspace(min_x - delta, min_x, n)
+        low_cdf = lsj_cdf(low_x, alpha=alpha_, beta=beta_, loc=loc_, scale=scale_, param=Params.N0)
+        high_x = jnp.linspace(max_x, max_x + delta, n)
+        high_cdf = lsj_cdf(high_x, alpha=alpha_, beta=beta_, loc=loc_, scale=scale_, param=Params.N0)
+        # Triple the size of the interval so that the values before and after
+        # the segment are also evaluated.
+        # It is assumed that these values are meant to be tail values
+        opt_val = _metric(curr_cdf, cdf) + 1.0 * _metric(low_cdf, 0) + 1.0 * _metric(high_cdf, 1)
+        # jax.debug.print(
+        #     "Opt value: {opt_val} {alpha_} {beta_} {loc_} {scale_}",
+        #     opt_val=opt_val,
+        #     alpha_=alpha_,
+        #     beta_=beta_,
+        #     loc_=loc_,
+        #     scale_=scale_,
+        # )
         return opt_val
 
     # Get a crude start
+    # Reuse the existing samples to get a coarse approximation of the parameters.
+    def _quantile(q):
+        idx = min(np.sum(cdf<=q), len(x) - 1)
+        return x[idx]
+    quants = [_quantile(q) for q in [0.05, 0.25, 0.5, 0.75, 0.95]]
     # All the work is done in the N0 parametrization.
-    start = fit_quantiles(x, Params.N0)
+    start = fit_quantiles(None, Params.N0, percentiles=quants)
     print("start", start)
-    return _fit_objective_n0(alpha, beta, _ks_distance, param, start)
+    res = _fit_objective_n0(alpha, beta, _ks_distance, param, start)
+    print("res", res)
+    return res
 
 
 def fit_ll(
@@ -203,7 +224,7 @@ def _fit_objective_n0(alpha_cons, beta_cons, obj, param, start):
         return obj(alpha_, beta_, loc_, scale_)
 
     solver = jaxopt.ScipyBoundedMinimize(
-        fun=obj_fun, method="l-bfgs-b", tol=1e-9, jit=False
+        fun=obj_fun, method="l-bfgs-b", tol=1e-8, jit=False
     )
     theta_start = _pack(*start)
 
@@ -222,11 +243,11 @@ def _fit_objective_n0(alpha_cons, beta_cons, obj, param, start):
             upper.append(0.9)
             idx += 1
         # Loc
-        lower.append(-1e6)
-        upper.append(1e6)
+        lower.append(-1e10)
+        upper.append(1e10)
         # Scale
-        lower.append(1e-6)
-        upper.append(1e6)
+        lower.append(1e-15)
+        upper.append(1e15)
         return (jnp.array(lower), jnp.array(upper))
 
     theta_bounds = _bounds()

@@ -25,15 +25,15 @@ def interp_linear(points: JArray, grid: JArray, lower: JArray, upper: JArray) ->
     # The interpolation seems to have NaN issues at the boundary of the grid.
     # TODO: ensure that all the interpolation happens strictly within the boundaries.
     # The mode is supposed to take into account, but it is flaky currently.
-    jax.debug.print(
-        "interp_linear: nan in points_: {a} nan in grid: {b} inf in grid: {c} all lower: {d} >=0: {e}",
-        a=jnp.any(jnp.isnan(points_)),
-        b=jnp.any(jnp.isnan(grid)),
-        c=jnp.any(jnp.isinf(grid)),
-        d=jnp.all(points_ <= (grid_shape - 1)),
-        e=jnp.all(points_ >= 1),
-    )
-    jax.debug.print("interp_linear {x}", x=points_)
+    # jax.debug.print(
+    #     "interp_linear: nan in points_: {a} nan in grid: {b} inf in grid: {c} all lower: {d} >=0: {e}",
+    #     a=jnp.any(jnp.isnan(points_)),
+    #     b=jnp.any(jnp.isnan(grid)),
+    #     c=jnp.any(jnp.isinf(grid)),
+    #     d=jnp.all(points_ <= (grid_shape - 1)),
+    #     e=jnp.all(points_ >= 1),
+    # )
+    # jax.debug.print("interp_linear {x}", x=points_)
     # Infinite values cause issues with the calculation of the gradient.
     # Clipping everything below a threshold.
     grid_ = jnp.clip(grid, a_min=-_THRESH)
