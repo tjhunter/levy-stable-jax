@@ -6,17 +6,19 @@ of the standard API: their interface is not likely to change but
 they may not be as numerically stable.
 """
 
-from typing import Optional
+from typing import Optional, Tuple, no_type_check
 
 import jax.numpy as jnp
 import numpy as np
-from jax import Array as JArray, jit
+from jax import Array as JArray
 from scipy.interpolate import RectBivariateSpline
 import jax
 import jaxopt  # type: ignore
 
-from .distribution import logpdf, Params, Param, cdf as lsj_cdf
+from .distribution import logpdf, cdf as lsj_cdf
 from ._utils import param_convert
+from ._typing import Param, Params
+
 
 def fit_quantiles(
     samples: JArray | None, param: Param, percentiles: JArray | None = None
@@ -66,7 +68,7 @@ def fit_ks(
     param: Param,
     alpha: Optional[float] = None,
     beta: Optional[float] = None,
-):
+) -> JArray:
     """
     Fits the closest Levy-stable distribution to cumulative distribution points.
     The distance is the Kolmogorov-Smirnov distance.
@@ -88,7 +90,7 @@ def fit_ks(
     n = jnp.size(x)
 
     def _metric(cdf_, target_):
-        return jnp.max(jnp.abs(cdf_-target_))
+        return jnp.max(jnp.abs(cdf_ - target_))
         # return jnp.mean(jnp.abs(cdf_ - target_))
 
     def _ks_distance(alpha_, beta_, loc_, scale_):
@@ -96,13 +98,21 @@ def fit_ks(
             x, loc=loc_, scale=scale_, alpha=alpha_, beta=beta_, param=Params.N0
         )
         low_x = jnp.linspace(min_x - delta, min_x, n)
-        low_cdf = lsj_cdf(low_x, alpha=alpha_, beta=beta_, loc=loc_, scale=scale_, param=Params.N0)
+        low_cdf = lsj_cdf(
+            low_x, alpha=alpha_, beta=beta_, loc=loc_, scale=scale_, param=Params.N0
+        )
         high_x = jnp.linspace(max_x, max_x + delta, n)
-        high_cdf = lsj_cdf(high_x, alpha=alpha_, beta=beta_, loc=loc_, scale=scale_, param=Params.N0)
+        high_cdf = lsj_cdf(
+            high_x, alpha=alpha_, beta=beta_, loc=loc_, scale=scale_, param=Params.N0
+        )
         # Triple the size of the interval so that the values before and after
         # the segment are also evaluated.
         # It is assumed that these values are meant to be tail values
-        opt_val = _metric(curr_cdf, cdf) + 1.0 * _metric(low_cdf, 0) + 1.0 * _metric(high_cdf, 1)
+        opt_val = (
+            _metric(curr_cdf, cdf)
+            + 1.0 * _metric(low_cdf, 0)
+            + 1.0 * _metric(high_cdf, 1)
+        )
         # jax.debug.print(
         #     "Opt value: {opt_val} {alpha_} {beta_} {loc_} {scale_}",
         #     opt_val=opt_val,
@@ -115,9 +125,10 @@ def fit_ks(
 
     # Get a crude start
     # Reuse the existing samples to get a coarse approximation of the parameters.
-    def _quantile(q):
-        idx = min(np.sum(cdf<=q), len(x) - 1)
+    def _quantile(q):  # type:ignore
+        idx = min(np.sum(cdf <= q), len(x) - 1)
         return x[idx]
+
     quants = [_quantile(q) for q in [0.05, 0.25, 0.5, 0.75, 0.95]]
     # All the work is done in the N0 parametrization.
     start = fit_quantiles(None, Params.N0, percentiles=quants)
@@ -133,7 +144,7 @@ def fit_ll(
     weights: Optional[JArray] = None,
     alpha: Optional[float] = None,
     beta: Optional[float] = None,
-):
+) -> JArray:
     """
     Maximum likelihood evaluation for univariate Lévy-Stable distributions.
 
@@ -159,7 +170,9 @@ def fit_ll(
     assert samples.ndim == 1, samples
     assert samples.size > 4, samples.size
 
-    def _log_likelikhood_n0(alpha_, beta_, loc_, scale_):
+    def _log_likelikhood_n0(
+        alpha_: JArray, beta_: JArray, loc_: JArray, scale_: JArray
+    ) -> JArray:
         # (alpha_, beta_, loc_, scale_) = _unpack(theta)
         logs = logpdf(
             samples, alpha=alpha_, beta=beta_, loc=loc_, scale=scale_, param=Params.N0
@@ -194,7 +207,7 @@ def _fit_objective_n0(alpha_cons, beta_cons, obj, param, start):
     start must be in the N0 param.
     """
 
-    def _unpack(theta):
+    def _unpack(theta) -> Tuple[JArray, JArray, JArray, JArray]:
         idx = 0
         if alpha_cons is None:
             alpha_ = theta[idx]
@@ -210,7 +223,7 @@ def _fit_objective_n0(alpha_cons, beta_cons, obj, param, start):
         scale_ = theta[idx + 1]
         return (alpha_, beta_, loc_, scale_)
 
-    def _pack(alpha_, beta_, loc_, scale_):
+    def _pack(alpha_: JArray, beta_: JArray, loc_: JArray, scale_: JArray) -> JArray:
         vals = [
             [alpha_] if alpha_cons is None else [],
             [beta_] if beta_cons is None else [],
@@ -219,7 +232,7 @@ def _fit_objective_n0(alpha_cons, beta_cons, obj, param, start):
         ]
         return jnp.array([x for val in vals for x in val])
 
-    def obj_fun(theta):
+    def obj_fun(theta: JArray) -> JArray:
         (alpha_, beta_, loc_, scale_) = _unpack(theta)
         return obj(alpha_, beta_, loc_, scale_)
 
@@ -229,7 +242,7 @@ def _fit_objective_n0(alpha_cons, beta_cons, obj, param, start):
     theta_start = _pack(*start)
 
     # Build the bounds for the solver:
-    def _bounds():
+    def _bounds() -> Tuple[JArray, JArray]:
         lower = []
         upper = []
         idx = 0
@@ -261,6 +274,7 @@ def _fit_objective_n0(alpha_cons, beta_cons, obj, param, start):
     return jnp.array([alpha0, beta0, loc_x, scale_x])
 
 
+@no_type_check
 def _fitstart_S0(p05, p25, p50, p75, p95):
     alpha, beta, delta1, gamma = _fitstart_S1(p05, p25, p50, p75, p95)
 
@@ -275,6 +289,7 @@ def _fitstart_S0(p05, p25, p50, p75, p95):
     return alpha, beta, delta0, gamma
 
 
+@no_type_check
 def _fitstart_S1(p05, p25, p50, p75, p95):
     # We follow McCullock 1986 method - Simple Consistent Estimators
     # of Stable Distribution Parameters

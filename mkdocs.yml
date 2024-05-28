@@ -37,6 +37,3 @@ plugins:
             # docstring_style: "numpy"
           rendering:
             show_source: false
-      # custom_templates: templates
-      watch:
-        - src/levy_stable_jax

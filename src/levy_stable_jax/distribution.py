@@ -10,7 +10,7 @@ Univariate stable distribution by John Nolan, 2020.
 from __future__ import annotations  # for the | syntax.
 
 from math import pi as PI
-from typing import Tuple, List, Sequence
+from typing import Tuple, List, Sequence, no_type_check
 
 import jax
 import jax.numpy as jnp
@@ -69,7 +69,7 @@ def _log_tail_gaussian(x: JArray) -> JArray:
     """
     # When alpha = 2, the Levy-stable distribution is equal to a
     # Gaussian distribution with scale = 2
-    return -0.25 * jnp.square(x) - jnp.log(2 * PI) / 2 - np.log(2.0) / 2
+    return -0.25 * jnp.square(x) - jnp.log(2 * PI) / 2 - np.log(2.0) / 2  # type:ignore
 
 
 INPUT_TYPE = npt.ArrayLike | JArray
@@ -86,19 +86,18 @@ def pdf(
     """
     The probability density function for the Levy-Stable distribution.
 
-    Parameters:
-
-    - x: the values at which to evaluate the PDF
-    - alpha: the alpha parameter of the distribution
-    - beta: the beta parameter of the distribution
-    - loc: the location parameter of the distribution
-        (default 0.0, meaning depends on the parametrization)
-    - scale: the scale parameter of the distribution
-        (default 1.0, meaning depends on the parametrization)
-    - param: the parametrization of the distribution
+    Args:
+        x: the values at which to evaluate the PDF
+        alpha: the alpha parameter of the distribution
+        beta: the beta parameter of the distribution
+        loc: the location parameter of the distribution
+            (default 0.0, meaning depends on the parametrization)
+        scale: the scale parameter of the distribution
+            (default 1.0, meaning depends on the parametrization)
+        param: the parametrization of the distribution
 
     Returns:
-    - the value of the PDF at the given point(s)
+        the value of the PDF at the given point(s)
 
     Examples:
 
@@ -134,16 +133,15 @@ def logpdf(
     """
     The probability density function for the Levy-Stable distribution.
 
-    Parameters:
-
-    - x: the values at which to evaluate the PDF
-    - alpha: the alpha parameter of the distribution
-    - beta: the beta parameter of the distribution
-    - loc: the location parameter of the distribution
-        (default 0.0, meaning depends on the parametrization)
-    - scale: the scale parameter of the distribution
-        (default 1.0, meaning depends on the parametrization)
-    - param: the parametrization of the distribution (see Params)
+    Args:
+        x: the values at which to evaluate the PDF
+        alpha: the alpha parameter of the distribution
+        beta: the beta parameter of the distribution
+        loc: the location parameter of the distribution
+            (default 0.0, meaning depends on the parametrization)
+        scale: the scale parameter of the distribution
+            (default 1.0, meaning depends on the parametrization)
+        param: the parametrization of the distribution (see Params)
 
     Examples:
 
@@ -168,7 +166,7 @@ def logpdf(
 def rvs(
     alpha: INPUT_TYPE,
     beta: INPUT_TYPE,
-    prng: jax.random.PRNGKey,
+    prng: jax.typing.ArrayLike,
     loc: INPUT_TYPE = 0.0,
     scale: INPUT_TYPE = 1.0,
     shape: Shape = (),
@@ -201,8 +199,8 @@ def rvs(
     ```
     """
     # The sampling algorithm is for N1 parametrization.
-    unit_n1 = _sample_unit_n1(alpha, beta, prng, shape)
-    return _values_n1_to_param(alpha, beta, unit_n1, loc, scale, param)
+    unit_n1 = _sample_unit_n1(jnp.asarray(alpha), jnp.asarray(beta), prng, shape)
+    return _values_n1_to_param(alpha, beta, unit_n1, loc, scale, param)  # type:ignore
 
 
 def cdf(
@@ -262,6 +260,8 @@ def _cdf_unit_n0(x: JArray, alpha: JArray, beta: JArray) -> JArray:
     return res
 
 
+# This function seems to make mypy freeze.
+@no_type_check
 def _values_n1_to_param(
     alpha: INPUT_TYPE,
     beta: INPUT_TYPE,
@@ -269,7 +269,7 @@ def _values_n1_to_param(
     loc: INPUT_TYPE,
     scale: INPUT_TYPE,
     to_param: Param,
-) -> Tuple[JArray, JArray]:
+) -> JArray:
     """
     Takes values in the unit N1 parametrization and shifts them to the requested parametrization.
 
@@ -367,7 +367,7 @@ def _logpdf_unit(x: JArray, alpha: JArray, beta: JArray) -> JArray:
     cutoff_min = -TAB_X_CUTOFF
     cutoff_max = TAB_X_CUTOFF
 
-    def return_interp(x_, alpha_, beta_):
+    def return_interp(x_: JArray, alpha_: JArray, beta_: JArray) -> JArray:
         # For all values in the interior, use interpolation.
         # For everything else, use the tail approximation function.
 
@@ -422,7 +422,7 @@ def _logpdf_unit(x: JArray, alpha: JArray, beta: JArray) -> JArray:
             tail_vals,
         )
 
-    def check_tail(x_, alpha_, beta_) -> JArray:
+    def check_tail(x_: JArray, alpha_: JArray, beta_: JArray) -> JArray:
         # This function should just apply to tail values.
 
         # Flip all x to positive and switch the sign of beta.
@@ -438,7 +438,7 @@ def _logpdf_unit(x: JArray, alpha: JArray, beta: JArray) -> JArray:
             check_tail_inner_pos(x_, alpha_, jnp.maximum(beta_, BETA_EXP_CUTOFF)),
         )
 
-    def check_tail_inner_pos(x_, alpha_, beta_) -> JArray:
+    def check_tail_inner_pos(x_: JArray, alpha_: JArray, beta_: JArray) -> JArray:
         # Builds tail in the standard case, and applies corrections if the tail is close to
         # boundaries.
         # Assumes that x > 1, beta < 1, alpha < 2
@@ -514,7 +514,7 @@ def _canonicalize_input(arrays: List[npt.ArrayLike]) -> Tuple[List[JArray], bool
     """
     # TODO: use primitives in numpy to achieve the same result
 
-    def _can_elt(t) -> JArray:
+    def _can_elt(t: npt.ArrayLike) -> JArray:
         arr = jnp.asarray(t)
         if arr.ndim == 0:
             arr = arr[jnp.newaxis]
@@ -547,7 +547,7 @@ def _canonicalize_input(arrays: List[npt.ArrayLike]) -> Tuple[List[JArray], bool
 
 
 def _sample_unit_n1(
-    alpha: JArray, beta: JArray, prng: jax.random.PRNGKey, shape: Shape
+    alpha: JArray, beta: JArray, prng: jax.typing.ArrayLike, shape: Shape
 ) -> JArray:
     """
     Sample from the unit Levy-stable distribution in the N1 parametrization.

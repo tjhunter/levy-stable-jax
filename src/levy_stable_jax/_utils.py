@@ -1,4 +1,4 @@
-from typing import Tuple, Union, Sequence
+from typing import Tuple, Any, Union, Sequence, Generator
 from scipy.stats import levy_stable as sp_levy_stable  # type: ignore
 from contextlib import contextmanager
 from jax import Array as JArray
@@ -8,7 +8,7 @@ from ._typing import Params, Param
 
 
 @contextmanager
-def set_stable(p: Param):
+def set_stable(p: Param) -> Generator[Any, Any, Any]:
     """
     Manages the parametrization of scipy's levy_stable distribution.
 
@@ -69,7 +69,7 @@ def param_convert(
 
     # For now, we only need to shift the location. The conversion of the scale
     # will only be needed for N2/N3 parametrization.
-    def _phi():
+    def _phi() -> JArray:
         return jnp.tan(jnp.pi * alpha / 2)
 
     if param_from == param_to:

@@ -3,7 +3,6 @@ The current implementation only supports 1d interpolation.
 """
 
 import jax.numpy as jnp
-import jax
 import jax.scipy as jsp
 from jax._src.typing import Array as JArray
 
@@ -26,7 +25,8 @@ def interp_linear(points: JArray, grid: JArray, lower: JArray, upper: JArray) ->
     # TODO: ensure that all the interpolation happens strictly within the boundaries.
     # The mode is supposed to take into account, but it is flaky currently.
     # jax.debug.print(
-    #     "interp_linear: nan in points_: {a} nan in grid: {b} inf in grid: {c} all lower: {d} >=0: {e}",
+    #     "interp_linear: nan in points_: {a} nan in grid: {b} inf in grid: {c}
+    # all lower: {d} >=0: {e}",
     #     a=jnp.any(jnp.isnan(points_)),
     #     b=jnp.any(jnp.isnan(grid)),
     #     c=jnp.any(jnp.isinf(grid)),
@@ -37,7 +37,7 @@ def interp_linear(points: JArray, grid: JArray, lower: JArray, upper: JArray) ->
     # Infinite values cause issues with the calculation of the gradient.
     # Clipping everything below a threshold.
     grid_ = jnp.clip(grid, a_min=-_THRESH)
-    res = jsp.ndimage.map_coordinates(grid_, points_.T, order=1, mode="constant")  # type: ignore
+    res: JArray = jsp.ndimage.map_coordinates(grid_, points_.T, order=1, mode="constant")  # type: ignore
     # The +- infinity values trigger NaN in the jax interpolation code.
     res = jnp.where(jnp.isnan(res), -jnp.inf, res)
     return res
