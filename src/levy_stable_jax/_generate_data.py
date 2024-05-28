@@ -36,6 +36,7 @@ def make_data_files() -> None:
     - it generates the log-pdf rather than the pdf itself
     - it generates floats rather than doubles
     """
+    # TODO: by symmetry, we should be able to divide the data in half
     # TODO: consider a further transform to tan(x) as in pylevy
     # This concentrates the points to the area of interest (the center of the distribution)
     xs = np.linspace(-TAB_X_CUTOFF, TAB_X_CUTOFF, NUM_X_POINTS)
@@ -44,19 +45,25 @@ def make_data_files() -> None:
     shape = (NUM_X_POINTS, NUM_ALPHA_POINTS, NUM_BETA_POINTS)
     dx = 2 * TAB_X_CUTOFF / NUM_X_POINTS
     _logger.info(f"Generating log-pdf shape: {shape}")
+    _logger.info(f"Generating cdf shape: {shape}")
     # Calculations are done in the N0 domain for numerical stability.
     logpdf = np.zeros(shape, np.float32)
+    cdf = np.zeros(shape, np.float32)
     for i, alpha in enumerate(alphas):
         for j, beta in enumerate(betas):
             with set_stable(Params.N0):
-                logpdf[:, i, j] = _gen_clean_vals(alpha, beta, xs, dx)
+                logpdf[:, i, j] = _gen_clean_vals_logpdf(alpha, beta, xs, dx)
+                cdf[:, i, j] = _gen_cdf(alpha, beta, xs)
                 _logger.info(
                     f"Calculating alpha={alpha} beta={beta} {sp_levy_stable.parameterization}"
                 )
     ROOT = os.path.dirname(os.path.abspath(__file__))
-    path = os.path.join(ROOT, "logpdf.npy")
-    _logger.info(f"Saving logpdf to {path}")
-    np.save(path, logpdf)
+    path_logpdf = os.path.join(ROOT, "logpdf.npy")
+    _logger.info(f"Saving logpdf to {path_logpdf}")
+    np.save(path_logpdf, logpdf)
+    path_cdf = os.path.join(ROOT, "cdf.npy")
+    _logger.info(f"Saving cdf to {path_cdf}")
+    np.save(path_cdf, cdf)
 
 
 def _is_kink(z: NDArray[Any]) -> NDArray[Any]:
@@ -70,7 +77,18 @@ def _is_kink(z: NDArray[Any]) -> NDArray[Any]:
     )
 
 
-def _gen_clean_vals(
+def _gen_cdf(alpha: float, beta: float, xs: NDArray[Any]) -> NDArray[Any]:
+    """
+    Generates cdf value using scipy's code.
+    """
+    # TODO: I think that using ppf values would be more robust in general, but it is a bit harder
+    # to handle with the interpolation code because the grid would be irregular.
+    ys = sp_levy_stable.cdf(xs, alpha=alpha, beta=beta)
+    assert np.all(~np.isnan(ys)), (alpha, beta, xs, ys)
+    return ys
+
+
+def _gen_clean_vals_logpdf(
     alpha: float, beta: float, xs: NDArray[Any], dx: float
 ) -> NDArray[Any]:
     """
@@ -88,6 +106,7 @@ def _gen_clean_vals(
     # They tend to jump quite far from the values around them.
     # A particularly bad example is sp_levy_stable.logpdf(xs, 1.1,-0.14) for N0.
     # TODO: open a bug against scipy.
+    # TODO: check if this is still necessary, recent scipy seems to have fixed this bug.
     jump_mask = _is_kink(ys)
     if np.sum(jump_mask) > 1:
         _logger.warning(

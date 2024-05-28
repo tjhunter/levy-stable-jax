@@ -4,7 +4,7 @@ Implementation of Levy Stable distributions in JAX.
 
 """
 
-from .distribution import pdf, logpdf, rvs
+from .distribution import pdf, logpdf, rvs, cdf
 from ._typing import Params, Param
 from ._utils import sum, set_stable, param_convert, shift_scale
 
@@ -18,4 +18,5 @@ __all__ = [
     "sum",
     "param_convert",
     "shift_scale",
+    "cdf",
 ]
