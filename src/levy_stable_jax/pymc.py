@@ -21,7 +21,7 @@ from pytensor.graph import Apply, Op
 from pytensor.link.jax.dispatch import jax_funcify
 import pymc as pm  # type: ignore
 
-from .distribution import logpdf as levy_stable_logpdf
+from .distribution import logpdf as levy_stable_logpdf, rvs as ls_rvs
 from .distribution import Params
 
 __all__ = ["LevyStableN0"]
@@ -76,9 +76,15 @@ def LevyStableN0(name, alpha, beta, loc, scale, observed=None):
 
     """
     return pm.CustomDist(
-        name, alpha, beta, loc, scale, logp=_levy_stable_logp_op, observed=observed
+        name, alpha, beta, loc, scale, logp=_levy_stable_logp_op,
+         random=_sample, observed=observed
     )
 
+
+def _sample(alpha, beta, loc, scale, rng, size):
+    # TODO: unsure if this is a good idea to hardcode the PRNG here. 
+    prng = jax.random.PRNGKey(1)
+    return ls_rvs(alpha, beta, prng, loc, scale, size, param=Params.N0)
 
 def _logp_sum_n0(x, alpha, beta, loc, scale):
     # TODO: it should already return a scalar, but currently returning a vector
