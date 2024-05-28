@@ -1,6 +1,6 @@
 lint:
 	black --check src/levy_stable_jax tests
-	ruff check src/levy_stable_jax tests # TODO: fix ruff
+	ruff check src/levy_stable_jax tests
 	mypy src/levy_stable_jax
 
 test:

@@ -19,7 +19,7 @@ def interp_linear(points: JArray, grid: JArray, lower: JArray, upper: JArray) ->
     """
     grid_shape = jnp.array(jnp.shape(grid))
     points_ = (points - lower) * ((grid_shape - 1) / (upper - lower))
-    res = jsp.ndimage.map_coordinates(grid, points_.T, order=1, mode="nearest")  # type: ignore
+    res: JArray = jsp.ndimage.map_coordinates(grid, points_.T, order=1, mode="nearest")  # type: ignore
     # The +- infinity values trigger NaN in the jax interpolation code.
     res = jnp.where(jnp.isnan(res), -jnp.inf, res)
     return res
