@@ -77,17 +77,20 @@ def fit_ks(
     values, this can provide a better matching distribution.
 
     Args:
-        x: the points at which the CDF is evaluated.
-        cdf: the values of the CDF at the given point
+        x: the points at which the CDF is evaluated. Must be increasing.
+        cdf: the values of the CDF at the given point. The first value must be
+            positive and close to 0 and the last value close to one and strictly
+            less than 1. All values must be sorted.
 
+    Returns:
     The first value is alpha, then beta, then the location parameter and then
      the scale parameter.
     """
 
     min_x = jnp.min(x)
     max_x = jnp.max(x)
-    delta = max_x - min_x
     n = jnp.size(x)
+    SUPP = 30
 
     def _metric(cdf_, target_):
         return jnp.max(jnp.abs(cdf_ - target_))
@@ -97,21 +100,35 @@ def fit_ks(
         curr_cdf = lsj_cdf(
             x, loc=loc_, scale=scale_, alpha=alpha_, beta=beta_, param=Params.N0
         )
-        low_x = jnp.linspace(min_x - delta, min_x, n)
+        # The current distribution may be completely off and not overlap.
+        # Use this coarse approximation of the support of the CDF to recenter.
+        supp_x_low = loc_ - SUPP * scale_
+        supp_x_high = loc_ + SUPP * scale_
+        # The loss for the low non-overlapping segment:
+        # print("supp_x_low", supp_x_low, "min_x", min_x, "supp_x_high", supp_x_high)
+        low_x = jnp.linspace(
+            jnp.minimum(supp_x_low, min_x), jnp.minimum(min_x, supp_x_high), n
+        )
         low_cdf = lsj_cdf(
             low_x, alpha=alpha_, beta=beta_, loc=loc_, scale=scale_, param=Params.N0
         )
-        high_x = jnp.linspace(max_x, max_x + delta, n)
+        low_cost = _metric(low_cdf, 0)
+        # The loss for the high non-overlapping segment:
+        high_x = jnp.linspace(
+            jnp.maximum(max_x, supp_x_low), jnp.maximum(max_x, supp_x_high), n
+        )
         high_cdf = lsj_cdf(
             high_x, alpha=alpha_, beta=beta_, loc=loc_, scale=scale_, param=Params.N0
         )
-        # Triple the size of the interval so that the values before and after
-        # the segment are also evaluated.
-        # It is assumed that these values are meant to be tail values
+        high_cost = _metric(high_cdf, 1)
+        # The loss for the low in-between segment:
+        low_bet_cost = jnp.maximum(0, min_x - supp_x_high)
+        # The loss for the high in-between segment:
+        high_bet_cost = jnp.maximum(0, supp_x_low - max_x)
         opt_val = (
             _metric(curr_cdf, cdf)
-            + 1.0 * _metric(low_cdf, 0)
-            + 1.0 * _metric(high_cdf, 1)
+            + 0.1 * (low_cost + low_bet_cost)
+            + 0.1 * (high_cost + high_bet_cost)
         )
         # jax.debug.print(
         #     "Opt value: {opt_val} {alpha_} {beta_} {loc_} {scale_}",
@@ -252,8 +269,8 @@ def _fit_objective_n0(alpha_cons, beta_cons, obj, param, start):
             idx += 1
         if beta_cons is None:
             # TODO: explain. this is important for numerical stability for the time being.
-            lower.append(-0.9)
-            upper.append(0.9)
+            lower.append(-0.95)
+            upper.append(0.95)
             idx += 1
         # Loc
         lower.append(-1e10)

@@ -36,7 +36,7 @@ def interp_linear(points: JArray, grid: JArray, lower: JArray, upper: JArray) ->
     # jax.debug.print("interp_linear {x}", x=points_)
     # Infinite values cause issues with the calculation of the gradient.
     # Clipping everything below a threshold.
-    grid_ = jnp.clip(grid, a_min=-_THRESH)
+    grid_ = grid  # jnp.clip(grid, a_min=-_THRESH)
     res: JArray = jsp.ndimage.map_coordinates(grid_, points_.T, order=1, mode="constant")  # type: ignore
     # The +- infinity values trigger NaN in the jax interpolation code.
     res = jnp.where(jnp.isnan(res), -jnp.inf, res)

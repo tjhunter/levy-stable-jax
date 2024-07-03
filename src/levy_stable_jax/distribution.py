@@ -59,8 +59,9 @@ BETA_EXP_CUTOFF = -1.0 + 1e-10
 
 X_TAIL_CUTOFF = 1.0
 
-BETA_EXP_REGIME = -(1.0 - 2e-1)
+BETA_EXP_REGIME = -(0.98)
 ALPHA_GAUSSIAN_REGIME = 2 - 1e-1
+BETA_REGIME = 0.95
 
 
 def _log_tail_gaussian(x: JArray) -> JArray:
@@ -397,13 +398,19 @@ def _logpdf_unit(x: JArray, alpha: JArray, beta: JArray) -> JArray:
         tail_vals = check_tail(x_, alpha_, beta_)
 
         # The interpolation is not reliable for extreme values of beta, and
-        # it falls off too quickly.
+        # it falls off too quickly
+        # This happens because the surrounding values in the interpolation lattice
+        # may be significantly lower for small changes around the edges.
         # Heuristic: use the maximum of tail and interpolation in the cases:
         interp_mask = (
-            (alpha_ > ALPHA_GAUSSIAN_REGIME)
-            & (jnp.abs(tail_vals - interp_vals) > 1e-1)
-            & (interp_vals < -15)
-        ) | jnp.isinf(interp_vals)
+            (
+                (alpha_ > ALPHA_GAUSSIAN_REGIME)
+                & (jnp.abs(tail_vals - interp_vals) > 1e-1)
+                & (interp_vals < -15)
+            )
+            | ((jnp.abs(beta_) > BETA_REGIME) & (interp_vals < -6))
+            | jnp.isinf(interp_vals)
+        )
 
         # blend = jax_special.logsumexp(
         #     jnp.stack([tail_vals, interp_vals], axis=1),
@@ -463,6 +470,7 @@ def _logpdf_unit(x: JArray, alpha: JArray, beta: JArray) -> JArray:
         gau_tail_mask = jnp.where(
             (alpha_ >= ALPHA_GAUSSIAN_REGIME) & (beta_ >= BETA_EXP_REGIME), zeros, ninfs
         )
+        # exp_tail_mask = zeros  # TODO: fix
 
         res = jax_special.logsumexp(
             jnp.stack(

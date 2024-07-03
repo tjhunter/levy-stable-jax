@@ -115,7 +115,7 @@ def _gen_clean_vals_logpdf(
     f = scipy.interpolate.interp1d(xs[~jump_mask], ys[~jump_mask], bounds_error=False)
     y_corr = np.where(jump_mask, f(xs), ys)
     # For beta close to 1/-1, the values are incorrect in the tail.
-    if np.abs(beta) > 0.9:
+    if np.abs(beta) > 0.999999:
         # It is noticeable because there is an abrupt kink in the logpdf.
         # The second derivative is large at this place, while it should be decreasing.
         # TODO: open a bug against scipy.
