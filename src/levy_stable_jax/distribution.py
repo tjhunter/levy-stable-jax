@@ -23,6 +23,7 @@ import numpy.typing as npt
 from ._interp import interp_linear
 from ._typing import Param, Params
 from ._cache import jax_read_from_cache
+from ._utils import param_convert
 
 Shape = Sequence[int]  # TODO: unsure how to obtain from jax.
 
@@ -58,8 +59,9 @@ BETA_EXP_CUTOFF = -1.0 + 1e-10
 
 X_TAIL_CUTOFF = 1.0
 
-BETA_EXP_REGIME = -(1.0 - 2e-1)
+BETA_EXP_REGIME = -(0.98)
 ALPHA_GAUSSIAN_REGIME = 2 - 1e-1
+BETA_REGIME = 0.95
 
 
 def _log_tail_gaussian(x: JArray) -> JArray:
@@ -114,8 +116,8 @@ def pdf(
         [alpha, beta, x, loc, scale]
     )
 
-    assert param == Params.N0, param
-    res = _pdf_n0(x_, alpha_, beta_, loc_, scale_)
+    (loc0, scale0) = param_convert(alpha_, beta_, loc_, scale_, param, Params.N0)
+    res = _pdf_n0(x_, alpha_, beta_, loc0, scale0)
     if is_scalar:
         res = res.item()
     return res
@@ -155,9 +157,8 @@ def logpdf(
         [alpha, beta, x, loc, scale]
     )
 
-    # TODO: implement the other parametrizations
-    assert param == Params.N0, param
-    res = _logpdf_n0(x_, alpha_, beta_, loc_, scale_)
+    (loc0, scale0) = param_convert(alpha_, beta_, loc_, scale_, param, Params.N0)
+    res = _logpdf_n0(x_, alpha_, beta_, loc0, scale0)
     if is_scalar:
         res = res.item()
     return res
@@ -201,6 +202,63 @@ def rvs(
     # The sampling algorithm is for N1 parametrization.
     unit_n1 = _sample_unit_n1(jnp.asarray(alpha), jnp.asarray(beta), prng, shape)
     return _values_n1_to_param(alpha, beta, unit_n1, loc, scale, param)  # type:ignore
+
+
+def cdf(
+    x: INPUT_TYPE,
+    alpha: INPUT_TYPE,
+    beta: INPUT_TYPE,
+    loc: INPUT_TYPE = 0.0,
+    scale: INPUT_TYPE = 1.0,
+    param: Param = Params.N0,
+) -> JArray | float:
+    """
+    The cumulative distribution function of the levy-stable distribution.
+
+    WARNING:
+    Unlike the pdf or the log-pdf, this implementation is currently rather crude. It will
+    clip extreme values of the CDF at 0 or 1 rather than returning proper tails. Do not rely on
+    this implementation for handling extreme values."""
+    (alpha_, beta_, x_, loc_, scale_), is_scalar = _canonicalize_input(
+        [alpha, beta, x, loc, scale]
+    )
+
+    (loc0, scale0) = param_convert(alpha_, beta_, loc_, scale_, param, Params.N0)
+    res = _cdf_n0(x_, alpha_, beta_, loc0, scale0)
+    if is_scalar:
+        res = res.item()
+    return res
+
+
+def _cdf_n0(
+    x: JArray, alpha: JArray, beta: JArray, loc: JArray, scale: JArray
+) -> JArray:
+    """ """
+    scale_p = _clip_pos(scale)
+    return _cdf_unit_n0((x - loc) / scale_p, alpha, beta)
+
+
+def _cdf_unit_n0(x: JArray, alpha: JArray, beta: JArray) -> JArray:
+    # The CDF implementation is currently much simpler than the logpdf because it is
+    # only implemented for the interpolated values.
+    cutoff_min = -TAB_X_CUTOFF + 1
+    cutoff_max = TAB_X_CUTOFF - 1
+
+    def interp(x_):
+        # Assumes that values are clipped within the tabulated range
+        points = jnp.stack([x_, alpha, beta], axis=1)
+        assert points.shape == (len(x_), 3)
+        tab_logpdf = jax_read_from_cache("cdf")
+        lower = jnp.array([-TAB_X_CUTOFF, ALPHA_MIN, BETA_MIN])
+        upper = jnp.array([TAB_X_CUTOFF, ALPHA_MAX, BETA_MAX])
+        return interp_linear(points, tab_logpdf, lower, upper)
+
+    res = jnp.where(
+        x <= cutoff_min,
+        0.0,
+        jnp.where(x >= TAB_X_CUTOFF, 1.0, interp(jnp.clip(x, cutoff_min, cutoff_max))),
+    )
+    return res
 
 
 # This function seems to make mypy freeze.
@@ -340,13 +398,19 @@ def _logpdf_unit(x: JArray, alpha: JArray, beta: JArray) -> JArray:
         tail_vals = check_tail(x_, alpha_, beta_)
 
         # The interpolation is not reliable for extreme values of beta, and
-        # it falls off too quickly.
+        # it falls off too quickly
+        # This happens because the surrounding values in the interpolation lattice
+        # may be significantly lower for small changes around the edges.
         # Heuristic: use the maximum of tail and interpolation in the cases:
         interp_mask = (
-            (alpha_ > ALPHA_GAUSSIAN_REGIME)
-            & (jnp.abs(tail_vals - interp_vals) > 1e-1)
-            & (interp_vals < -15)
-        ) | jnp.isinf(interp_vals)
+            (
+                (alpha_ > ALPHA_GAUSSIAN_REGIME)
+                & (jnp.abs(tail_vals - interp_vals) > 1e-1)
+                & (interp_vals < -15)
+            )
+            | ((jnp.abs(beta_) > BETA_REGIME) & (interp_vals < -6))
+            | jnp.isinf(interp_vals)
+        )
 
         # blend = jax_special.logsumexp(
         #     jnp.stack([tail_vals, interp_vals], axis=1),
@@ -406,6 +470,7 @@ def _logpdf_unit(x: JArray, alpha: JArray, beta: JArray) -> JArray:
         gau_tail_mask = jnp.where(
             (alpha_ >= ALPHA_GAUSSIAN_REGIME) & (beta_ >= BETA_EXP_REGIME), zeros, ninfs
         )
+        # exp_tail_mask = zeros  # TODO: fix
 
         res = jax_special.logsumexp(
             jnp.stack(

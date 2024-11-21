@@ -135,7 +135,7 @@ test = ["dateparser (==1.*)", "pre-commit", "pytest", "pytest-cov", "pytest-mock
 name = "arviz"
 version = "0.18.0"
 description = "Exploratory analysis of Bayesian models"
-optional = true
+optional = false
 python-versions = ">=3.10"
 files = [
     {file = "arviz-0.18.0-py3-none-any.whl", hash = "sha256:6eaaaffff4fb90ed49bf5305c171e5c6848b2b18cc5db1537319d8fb67c4e8f5"},
@@ -312,7 +312,7 @@ css = ["tinycss2 (>=1.1.0,<1.3)"]
 name = "cachetools"
 version = "5.3.3"
 description = "Extensible memoizing collections and decorators"
-optional = true
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "cachetools-5.3.3-py3-none-any.whl", hash = "sha256:0abad1021d3f8325b2fc1d2e9c8b9c9d57b04c3932657a72465447332c24d945"},
@@ -511,7 +511,7 @@ colorama = {version = "*", markers = "platform_system == \"Windows\""}
 name = "cloudpickle"
 version = "3.0.0"
 description = "Pickler class to extend the standard pickle.Pickler functionality"
-optional = true
+optional = false
 python-versions = ">=3.8"
 files = [
     {file = "cloudpickle-3.0.0-py3-none-any.whl", hash = "sha256:246ee7d0c295602a036e86369c77fecda4ab17b506496730f2f576d9016fd9c7"},
@@ -694,7 +694,7 @@ files = [
 name = "dm-tree"
 version = "0.1.8"
 description = "Tree is a library for working with nested data structures."
-optional = true
+optional = false
 python-versions = "*"
 files = [
     {file = "dm-tree-0.1.8.tar.gz", hash = "sha256:0fcaabbb14e7980377439e7140bd05552739ca5e515ecb3119f234acee4b9430"},
@@ -934,13 +934,22 @@ dev = ["flake8", "markdown", "twine", "wheel"]
 
 [[package]]
 name = "griffe"
+<<<<<<< HEAD
+version = "0.45.0"
+=======
 version = "0.45.2"
+>>>>>>> origin
 description = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
 optional = false
 python-versions = ">=3.8"
 files = [
+<<<<<<< HEAD
+    {file = "griffe-0.45.0-py3-none-any.whl", hash = "sha256:90fe5c90e1b0ca7dd6fee78f9009f4e01b37dbc9ab484a9b2c1578915db1e571"},
+    {file = "griffe-0.45.0.tar.gz", hash = "sha256:85cb2868d026ea51c89bdd589ad3ccc94abc5bd8d5d948e3d4450778a2a05b4a"},
+=======
     {file = "griffe-0.45.2-py3-none-any.whl", hash = "sha256:297ec8530d0c68e5b98ff86fb588ebc3aa3559bb5dc21f3caea8d9542a350133"},
     {file = "griffe-0.45.2.tar.gz", hash = "sha256:83ce7dcaafd8cb7f43cbf1a455155015a1eb624b1ffd93249e5e1c4a22b2fdb2"},
+>>>>>>> origin
 ]
 
 [package.dependencies]
@@ -961,7 +970,7 @@ files = [
 name = "h5netcdf"
 version = "1.3.0"
 description = "netCDF4 via h5py"
-optional = true
+optional = false
 python-versions = ">=3.9"
 files = [
     {file = "h5netcdf-1.3.0-py3-none-any.whl", hash = "sha256:f2df69dcd3665dc9c4d43eb6529dedd113b2508090d12ac973573305a8406465"},
@@ -979,7 +988,7 @@ test = ["netCDF4", "pytest"]
 name = "h5py"
 version = "3.11.0"
 description = "Read and write HDF5 files from Python"
-optional = true
+optional = false
 python-versions = ">=3.8"
 files = [
     {file = "h5py-3.11.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:1625fd24ad6cfc9c1ccd44a66dac2396e7ee74940776792772819fc69f3a3731"},
@@ -1055,13 +1064,22 @@ socks = ["socksio (==1.*)"]
 
 [[package]]
 name = "hypothesis"
+<<<<<<< HEAD
+version = "6.102.4"
+=======
 version = "6.102.6"
+>>>>>>> origin
 description = "A library for property-based testing"
 optional = false
 python-versions = ">=3.8"
 files = [
+<<<<<<< HEAD
+    {file = "hypothesis-6.102.4-py3-none-any.whl", hash = "sha256:013df31b04a4daede13756f497e60e451963d86f426395a79f99c5d692919bbd"},
+    {file = "hypothesis-6.102.4.tar.gz", hash = "sha256:59b4d144346d5cffb482cc1bafbd21b13ff31608e8c4b3e4630339aee3e87763"},
+=======
     {file = "hypothesis-6.102.6-py3-none-any.whl", hash = "sha256:ef281ba8b2626ebade9f463fbe8851ae6ff6ae4a8621a9e54c7c2477a97ccff0"},
     {file = "hypothesis-6.102.6.tar.gz", hash = "sha256:ef5655b4ca349082241ab55f899a34ea6d75cc336a7b07356680909059db1349"},
+>>>>>>> origin
 ]
 
 [package.dependencies]
@@ -1305,7 +1323,7 @@ cuda12-pip = ["nvidia-cublas-cu12 (>=12.1.3.1)", "nvidia-cuda-cupti-cu12 (>=12.1
 name = "jaxopt"
 version = "0.8.3"
 description = "Hardware accelerated, batchable and differentiable optimizers in JAX."
-optional = true
+optional = false
 python-versions = "*"
 files = [
     {file = "jaxopt-0.8.3-py3-none-any.whl", hash = "sha256:4be2f82798393682529c9ca5046e5397ac6c8657b8acb6bf275e773b28df15b6"},
@@ -1612,13 +1630,22 @@ test = ["jupyter-server (>=2.0.0)", "pytest (>=7.0)", "pytest-jupyter[server] (>
 
 [[package]]
 name = "jupyterlab"
+<<<<<<< HEAD
+version = "4.2.0"
+=======
 version = "4.2.1"
+>>>>>>> origin
 description = "JupyterLab computational environment"
 optional = false
 python-versions = ">=3.8"
 files = [
+<<<<<<< HEAD
+    {file = "jupyterlab-4.2.0-py3-none-any.whl", hash = "sha256:0dfe9278e25a145362289c555d9beb505697d269c10e99909766af7c440ad3cc"},
+    {file = "jupyterlab-4.2.0.tar.gz", hash = "sha256:356e9205a6a2ab689c47c8fe4919dba6c076e376d03f26baadc05748c2435dd5"},
+=======
     {file = "jupyterlab-4.2.1-py3-none-any.whl", hash = "sha256:6ac6e3827b3c890e6e549800e8a4f4aaea6a69321e2240007902aa7a0c56a8e4"},
     {file = "jupyterlab-4.2.1.tar.gz", hash = "sha256:a10fb71085a6900820c62d43324005046402ffc8f0fde696103e37238a839507"},
+>>>>>>> origin
 ]
 
 [package.dependencies]
@@ -1836,7 +1863,7 @@ testing = ["coverage", "pyyaml"]
 name = "markdown-it-py"
 version = "3.0.0"
 description = "Python port of markdown-it. Markdown parsing, done right!"
-optional = true
+optional = false
 python-versions = ">=3.8"
 files = [
     {file = "markdown-it-py-3.0.0.tar.gz", hash = "sha256:e3f60a94fa066dc52ec76661e37c851cb232d92f9886b15cb560aaada2df8feb"},
@@ -1995,7 +2022,7 @@ traitlets = "*"
 name = "mdurl"
 version = "0.1.2"
 description = "Markdown URL utilities"
-optional = true
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
@@ -2105,13 +2132,22 @@ pyyaml = ">=5.1"
 
 [[package]]
 name = "mkdocs-material"
+<<<<<<< HEAD
+version = "9.5.23"
+=======
 version = "9.5.25"
+>>>>>>> origin
 description = "Documentation that simply works"
 optional = false
 python-versions = ">=3.8"
 files = [
+<<<<<<< HEAD
+    {file = "mkdocs_material-9.5.23-py3-none-any.whl", hash = "sha256:ffd08a5beaef3cd135aceb58ded8b98bbbbf2b70e5b656f6a14a63c917d9b001"},
+    {file = "mkdocs_material-9.5.23.tar.gz", hash = "sha256:4627fc3f15de2cba2bde9debc2fd59b9888ef494beabfe67eb352e23d14bf288"},
+=======
     {file = "mkdocs_material-9.5.25-py3-none-any.whl", hash = "sha256:68fdab047a0b9bfbefe79ce267e8a7daaf5128bcf7867065fcd201ee335fece1"},
     {file = "mkdocs_material-9.5.25.tar.gz", hash = "sha256:d0662561efb725b712207e0ee01f035ca15633f29a64628e24f01ec99d7078f4"},
+>>>>>>> origin
 ]
 
 [package.dependencies]
@@ -2470,7 +2506,7 @@ files = [
 name = "numpyro"
 version = "0.14.0"
 description = "Pyro PPL on NumPy"
-optional = true
+optional = false
 python-versions = ">=3.9"
 files = [
     {file = "numpyro-0.14.0-py3-none-any.whl", hash = "sha256:1aef9b30e263f4dc4c829d0f8ce6d0640b030d33b32c2b6e1ed20be5f7c12478"},
@@ -2894,7 +2930,7 @@ windows-terminal = ["colorama (>=0.4.6)"]
 name = "pymc"
 version = "5.15.0"
 description = "Probabilistic Programming in Python: Bayesian Modeling and Probabilistic Machine Learning with PyTensor"
-optional = true
+optional = false
 python-versions = ">=3.10"
 files = [
     {file = "pymc-5.15.0-py3-none-any.whl", hash = "sha256:30bf59023912ea5f376b8381f3499e1a2ff0d1a23e9db8de1309c38d5570845e"},
@@ -3470,7 +3506,7 @@ files = [
 name = "rich"
 version = "13.7.1"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
-optional = true
+optional = false
 python-versions = ">=3.7.0"
 files = [
     {file = "rich-13.7.1-py3-none-any.whl", hash = "sha256:4edbae314f59eb482f54e9e30bf00d33350aaa94f4bfcd4e9e3110e64d0d7222"},
@@ -3594,11 +3630,34 @@ files = [
 
 [[package]]
 name = "ruff"
+<<<<<<< HEAD
+version = "0.4.4"
+=======
 version = "0.4.5"
+>>>>>>> origin
 description = "An extremely fast Python linter and code formatter, written in Rust."
 optional = false
 python-versions = ">=3.7"
 files = [
+<<<<<<< HEAD
+    {file = "ruff-0.4.4-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:29d44ef5bb6a08e235c8249294fa8d431adc1426bfda99ed493119e6f9ea1bf6"},
+    {file = "ruff-0.4.4-py3-none-macosx_11_0_arm64.whl", hash = "sha256:c4efe62b5bbb24178c950732ddd40712b878a9b96b1d02b0ff0b08a090cbd891"},
+    {file = "ruff-0.4.4-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4c8e2f1e8fc12d07ab521a9005d68a969e167b589cbcaee354cb61e9d9de9c15"},
+    {file = "ruff-0.4.4-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:60ed88b636a463214905c002fa3eaab19795679ed55529f91e488db3fe8976ab"},
+    {file = "ruff-0.4.4-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:b90fc5e170fc71c712cc4d9ab0e24ea505c6a9e4ebf346787a67e691dfb72e85"},
+    {file = "ruff-0.4.4-py3-none-manylinux_2_17_ppc64.manylinux2014_ppc64.whl", hash = "sha256:8e7e6ebc10ef16dcdc77fd5557ee60647512b400e4a60bdc4849468f076f6eef"},
+    {file = "ruff-0.4.4-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:b9ddb2c494fb79fc208cd15ffe08f32b7682519e067413dbaf5f4b01a6087bcd"},
+    {file = "ruff-0.4.4-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:c51c928a14f9f0a871082603e25a1588059b7e08a920f2f9fa7157b5bf08cfe9"},
+    {file = "ruff-0.4.4-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b5eb0a4bfd6400b7d07c09a7725e1a98c3b838be557fee229ac0f84d9aa49c36"},
+    {file = "ruff-0.4.4-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:b1867ee9bf3acc21778dcb293db504692eda5f7a11a6e6cc40890182a9f9e595"},
+    {file = "ruff-0.4.4-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:1aecced1269481ef2894cc495647392a34b0bf3e28ff53ed95a385b13aa45768"},
+    {file = "ruff-0.4.4-py3-none-musllinux_1_2_i686.whl", hash = "sha256:9da73eb616b3241a307b837f32756dc20a0b07e2bcb694fec73699c93d04a69e"},
+    {file = "ruff-0.4.4-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:958b4ea5589706a81065e2a776237de2ecc3e763342e5cc8e02a4a4d8a5e6f95"},
+    {file = "ruff-0.4.4-py3-none-win32.whl", hash = "sha256:cb53473849f011bca6e754f2cdf47cafc9c4f4ff4570003a0dad0b9b6890e876"},
+    {file = "ruff-0.4.4-py3-none-win_amd64.whl", hash = "sha256:424e5b72597482543b684c11def82669cc6b395aa8cc69acc1858b5ef3e5daae"},
+    {file = "ruff-0.4.4-py3-none-win_arm64.whl", hash = "sha256:39df0537b47d3b597293edbb95baf54ff5b49589eb7ff41926d8243caa995ea6"},
+    {file = "ruff-0.4.4.tar.gz", hash = "sha256:f87ea42d5cdebdc6a69761a9d0bc83ae9b3b30d0ad78952005ba6568d6c022af"},
+=======
     {file = "ruff-0.4.5-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:8f58e615dec58b1a6b291769b559e12fdffb53cc4187160a2fc83250eaf54e96"},
     {file = "ruff-0.4.5-py3-none-macosx_11_0_arm64.whl", hash = "sha256:84dd157474e16e3a82745d2afa1016c17d27cb5d52b12e3d45d418bcc6d49264"},
     {file = "ruff-0.4.5-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:25f483ad9d50b00e7fd577f6d0305aa18494c6af139bce7319c68a17180087f4"},
@@ -3616,6 +3675,7 @@ files = [
     {file = "ruff-0.4.5-py3-none-win_amd64.whl", hash = "sha256:b0b03c619d2b4350b4a27e34fd2ac64d0dabe1afbf43de57d0f9d8a05ecffa45"},
     {file = "ruff-0.4.5-py3-none-win_arm64.whl", hash = "sha256:9d15de3425f53161b3f5a5658d4522e4eee5ea002bf2ac7aa380743dd9ad5fba"},
     {file = "ruff-0.4.5.tar.gz", hash = "sha256:286eabd47e7d4d521d199cab84deca135557e6d1e0f0d01c29e757c3cb151b54"},
+>>>>>>> origin
 ]
 
 [[package]]
@@ -4089,7 +4149,7 @@ files = [
 name = "tqdm"
 version = "4.66.4"
 description = "Fast, Extensible Progress Meter"
-optional = true
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "tqdm-4.66.4-py3-none-any.whl", hash = "sha256:b75ca56b413b030bc3f00af51fd2c1a1a5eac6a0c1cca83cbb37a5c52abce644"},
@@ -4296,7 +4356,7 @@ files = [
 name = "xarray"
 version = "2024.5.0"
 description = "N-D labeled arrays and datasets in Python"
-optional = true
+optional = false
 python-versions = ">=3.9"
 files = [
     {file = "xarray-2024.5.0-py3-none-any.whl", hash = "sha256:7ddedfe2294a0ab00f02d0fbdcb9c6300ec589f3cf436a9c7b7b577a12cd9bcf"},
@@ -4320,7 +4380,7 @@ viz = ["matplotlib", "nc-time-axis", "seaborn"]
 name = "xarray-einstats"
 version = "0.7.0"
 description = "Stats, linear algebra and einops for xarray"
-optional = true
+optional = false
 python-versions = ">=3.9"
 files = [
     {file = "xarray_einstats-0.7.0-py3-none-any.whl", hash = "sha256:f39403341ebf5b634ab1f1bd0e1bb2dc51046e0df31aa908dfbe2fa6a493712e"},
@@ -4345,4 +4405,8 @@ pymc = ["numpyro", "pymc"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
+<<<<<<< HEAD
+content-hash = "dd183f6bfdfd43b474b6e925ff508ae26d13d584a665fbba353da41747b19f03"
+=======
 content-hash = "fe46a4f31b0b29d42eddb955ebee1e9622e00b77112bce85f98ec705c60b124e"
+>>>>>>> origin
